@@ -178,7 +178,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
     }
 
     const speedKmh = Math.sqrt(velocity.current[0] ** 2 + velocity.current[2] ** 2) * 3.6;
-    const baseEngineForce = 1800;
+    const baseEngineForce = 2400;
     const maxSteerVal = 0.58;
     const brakeForce = 52;
     const frontBrakeBias = 1.1;
@@ -191,7 +191,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       vehicleApi.setSteeringValue(currentSteer.current, 0);
       vehicleApi.setSteeringValue(currentSteer.current, 1);
 
-      const speedLimiter = forward ? Math.max(0.25, 1 - speedKmh / 180) : 1;
+      const speedLimiter = forward ? Math.max(0.35, 1 - speedKmh / 240) : 1;
       const targetEngineForce = forward ? baseEngineForce * speedLimiter : backward ? -baseEngineForce * 0.75 : 0;
       const engineResponse = targetEngineForce === 0 ? 7 : 4;
       currentEngineForce.current += (targetEngineForce - currentEngineForce.current) * Math.min(1, delta * engineResponse);
