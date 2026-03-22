@@ -29,6 +29,7 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
   const setMode = useGameStore((state) => state.setMode);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const wireframe = useGameStore((state) => state.wireframe);
+  const wireframeColor = '#39ff14';
 
   useEffect(() => {
     if (mode === 'walking') {
@@ -156,7 +157,13 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
       <group ref={groupRef} visible={mode === 'walking' || mode === 'exiting_car'}>
         <mesh castShadow>
           <sphereGeometry args={[0.5, 32, 32]} />
-          <meshStandardMaterial color="#ff4081" wireframe={wireframe} />
+          <meshStandardMaterial color="#ff4081" />
+          {wireframe && (
+            <mesh scale={[1.01, 1.01, 1.01]}>
+              <sphereGeometry args={[0.5, 32, 32]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         {/* Visor/Eyes to indicate front */}
         <mesh position={[0, 0.2, -0.4]} castShadow>

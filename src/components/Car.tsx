@@ -11,6 +11,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   const setMode = useGameStore((state) => state.setMode);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const wireframe = useGameStore((state) => state.wireframe);
+  const wireframeColor = '#39ff14';
   const { forward, backward, left, right, brake, interact } = useControls();
 
   const chassisBodyArgs: [number, number, number] = [2, 1, 4];
@@ -231,58 +232,130 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
     <group ref={vehicleRef as any}>
       <mesh ref={chassisRef as any} castShadow>
         <boxGeometry args={chassisBodyArgs} />
-        <meshStandardMaterial color="#00bcd4" wireframe={wireframe} />
+        <meshStandardMaterial color="#00bcd4" />
+        {wireframe && (
+          <mesh scale={[1.002, 1.002, 1.002]}>
+            <boxGeometry args={chassisBodyArgs} />
+            <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+          </mesh>
+        )}
         <mesh position={[0, 0.45, -0.6]} castShadow>
           <boxGeometry args={[1.5, 0.5, 1.4]} />
-          <meshStandardMaterial color="#263238" wireframe={wireframe} />
+          <meshStandardMaterial color="#263238" />
+          {wireframe && (
+            <mesh scale={[1.01, 1.01, 1.01]}>
+              <boxGeometry args={[1.5, 0.5, 1.4]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[0, 0.1, -2.05]}>
           <boxGeometry args={[1.3, 0.25, 0.1]} />
-          <meshStandardMaterial color="#111" wireframe={wireframe} />
+          <meshStandardMaterial color="#111" />
+          {wireframe && (
+            <mesh scale={[1.02, 1.02, 1.02]}>
+              <boxGeometry args={[1.3, 0.25, 0.1]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[-0.65, 0.05, -2.1]}>
           <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} wireframe={wireframe} />
+          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} />
+          {wireframe && (
+            <mesh scale={[1.08, 1.08, 1.08]}>
+              <sphereGeometry args={[0.12, 16, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[0.65, 0.05, -2.1]}>
           <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} wireframe={wireframe} />
+          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} />
+          {wireframe && (
+            <mesh scale={[1.08, 1.08, 1.08]}>
+              <sphereGeometry args={[0.12, 16, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[-0.6, 0.1, 2.05]}>
           <boxGeometry args={[0.35, 0.18, 0.1]} />
-          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} wireframe={wireframe} />
+          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} />
+          {wireframe && (
+            <mesh scale={[1.05, 1.05, 1.05]}>
+              <boxGeometry args={[0.35, 0.18, 0.1]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[0.6, 0.1, 2.05]}>
           <boxGeometry args={[0.35, 0.18, 0.1]} />
-          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} wireframe={wireframe} />
+          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} />
+          {wireframe && (
+            <mesh scale={[1.05, 1.05, 1.05]}>
+              <boxGeometry args={[0.35, 0.18, 0.1]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
         <mesh position={[0, 0.35, 2]}>
           <boxGeometry args={[1.2, 0.15, 0.1]} />
-          <meshStandardMaterial color="#37474f" wireframe={wireframe} />
+          <meshStandardMaterial color="#37474f" />
+          {wireframe && (
+            <mesh scale={[1.03, 1.03, 1.03]}>
+              <boxGeometry args={[1.2, 0.15, 0.1]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
       </mesh>
       <group ref={wheel1 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
-          <meshStandardMaterial color="#333" wireframe={wireframe} />
+          <meshStandardMaterial color="#333" />
+          {wireframe && (
+            <mesh scale={[1.02, 1.02, 1.02]}>
+              <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
       </group>
       <group ref={wheel2 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
-          <meshStandardMaterial color="#333" wireframe={wireframe} />
+          <meshStandardMaterial color="#333" />
+          {wireframe && (
+            <mesh scale={[1.02, 1.02, 1.02]}>
+              <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
       </group>
       <group ref={wheel3 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
-          <meshStandardMaterial color="#333" wireframe={wireframe} />
+          <meshStandardMaterial color="#333" />
+          {wireframe && (
+            <mesh scale={[1.02, 1.02, 1.02]}>
+              <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
       </group>
       <group ref={wheel4 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
-          <meshStandardMaterial color="#333" wireframe={wireframe} />
+          <meshStandardMaterial color="#333" />
+          {wireframe && (
+            <mesh scale={[1.02, 1.02, 1.02]}>
+              <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
+              <meshBasicMaterial color={wireframeColor} wireframe transparent opacity={0.45} depthTest={false} />
+            </mesh>
+          )}
         </mesh>
       </group>
     </group>
