@@ -34,7 +34,7 @@ export const useGameStore = create<GameState>((set) => ({
   setSpeed: (speed) => set({ speed }),
   carPosition: [5, 2, 0],
   setCarPosition: (pos) => set({ carPosition: pos }),
-  playerPosition: [0, 2, 0],
+  playerPosition: [0, 3, 0],
   setPlayerPosition: (pos) => set({ playerPosition: pos }),
   playerYaw: 0,
   setPlayerYaw: (yaw) => set({ playerYaw: yaw }),

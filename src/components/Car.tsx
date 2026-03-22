@@ -113,7 +113,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       const yaw = Math.atan2(-carForward.x, -carForward.z);
 
       useGameStore.setState({ 
-        playerPosition: [spawnPos.x, Math.max(spawnPos.y, 2), spawnPos.z],
+        playerPosition: [spawnPos.x, Math.max(spawnPos.y, 3), spawnPos.z],
         playerYaw: yaw
       });
       setMode('exiting_car');

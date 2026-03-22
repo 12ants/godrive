@@ -8,7 +8,7 @@ import { useControls } from '../useControls';
 const SPEED = 10;
 const JUMP_FORCE = 8;
 
-export function Player({ position = [0, 2, 0] }: { position?: [number, number, number] }) {
+export function Player({ position = [0, 3, 0] }: { position?: [number, number, number] }) {
   const { camera } = useThree();
   const [ref, api] = useSphere(() => ({
     mass: 1,
@@ -55,7 +55,7 @@ export function Player({ position = [0, 2, 0] }: { position?: [number, number, n
       const pPos = useGameStore.getState().playerPosition;
       const pYaw = useGameStore.getState().playerYaw;
       // Ensure we spawn high enough to not clip into the ground
-      const spawnY = Math.max(pPos[1], 2);
+      const spawnY = Math.max(pPos[1], 3);
       api.position.set(pPos[0], spawnY, pPos[2]);
       pos.current = [pPos[0], spawnY, pPos[2]]; // Update ref immediately to prevent camera glitch
       api.velocity.set(0, 0, 0);
