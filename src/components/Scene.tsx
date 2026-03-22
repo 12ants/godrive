@@ -38,7 +38,8 @@ export function Scene() {
       <Physics broadphase="SAP" gravity={[0, -9.81, 0]}>
         <Environment />
         <Player />
-        <Car />
+        <Car carId="coupe" position={[5, 2, 0]} />
+        <Car carId="sports" variant="sports" position={[-12, 2, -4]} />
       </Physics>
     </Canvas>
   );

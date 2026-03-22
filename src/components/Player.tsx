@@ -2,7 +2,7 @@ import { useSphere } from '@react-three/cannon';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Vector3, Quaternion, Group } from 'three';
-import { useGameStore } from '../store';
+import { CarId, useGameStore } from '../store';
 import { useControls } from '../useControls';
 
 const SPEED = 10;
@@ -27,6 +27,7 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
   const { forward, backward, left, right, jump, interact } = useControls();
   const mode = useGameStore((state) => state.mode);
   const setMode = useGameStore((state) => state.setMode);
+  const setActiveCarId = useGameStore((state) => state.setActiveCarId);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const wireframe = useGameStore((state) => state.wireframe);
   const wireframeColor = '#39ff14';
@@ -84,13 +85,26 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
     useGameStore.setState({ playerPosition: [pos.current[0], pos.current[1], pos.current[2]] });
 
     if (mode === 'walking' && justPressedInteract) {
-      const carPos = useGameStore.getState().carPosition;
-      const dist = Math.sqrt(
-        Math.pow(pos.current[0] - carPos[0], 2) +
-        Math.pow(pos.current[1] - carPos[1], 2) +
-        Math.pow(pos.current[2] - carPos[2], 2)
+      const carEntries = Object.entries(useGameStore.getState().carPositions) as Array<[CarId, [number, number, number]]>;
+      const nearestCar = carEntries.reduce(
+        (closest, [carId, carPos]) => {
+          const dist = Math.sqrt(
+            Math.pow(pos.current[0] - carPos[0], 2) +
+            Math.pow(pos.current[1] - carPos[1], 2) +
+            Math.pow(pos.current[2] - carPos[2], 2)
+          );
+
+          if (dist < closest.distance) {
+            return { carId, distance: dist };
+          }
+
+          return closest;
+        },
+        { carId: 'coupe' as CarId, distance: Infinity }
       );
-      if (dist < 5) {
+
+      if (nearestCar.distance < 5) {
+        setActiveCarId(nearestCar.carId);
         setMode('entering_car');
         setTimeout(() => {
           setMode('driving');
