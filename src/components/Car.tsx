@@ -17,20 +17,22 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   const [chassisRef, chassisApi] = useBox(() => ({
     mass: 1500,
     position,
+    linearDamping: 0.35,
+    angularDamping: 0.55,
     args: chassisBodyArgs,
   }));
 
   const wheelInfo = {
     radius: 0.5,
     directionLocal: [0, -1, 0] as [number, number, number],
-    suspensionStiffness: 30,
-    suspensionRestLength: 0.3,
+    suspensionStiffness: 38,
+    suspensionRestLength: 0.26,
     maxSuspensionForce: 100000,
-    maxSuspensionTravel: 0.3,
-    dampingRelaxation: 2.3,
-    dampingCompression: 4.4,
-    frictionSlip: 5,
-    rollInfluence: 0.01,
+    maxSuspensionTravel: 0.28,
+    dampingRelaxation: 3.2,
+    dampingCompression: 5.1,
+    frictionSlip: 4.6,
+    rollInfluence: 0.08,
     axleLocal: [-1, 0, 0] as [number, number, number],
     chassisConnectionPointLocal: [1, 0, 1] as [number, number, number],
     isFrontWheel: false,
@@ -39,10 +41,10 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   };
 
   const wheelInfos = [
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, frictionSlip: 4.2, chassisConnectionPointLocal: [-1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, frictionSlip: 4.2, chassisConnectionPointLocal: [1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, frictionSlip: 5.0, chassisConnectionPointLocal: [-1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, frictionSlip: 5.0, chassisConnectionPointLocal: [1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
   ];
 
   const [wheel1] = useCylinder(() => ({ mass: 1, type: 'Kinematic', material: 'wheel', collisionFilterGroup: 0, args: [0.5, 0.5, 0.5, 16] }));
@@ -63,6 +65,8 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   const pos = useRef([0, 0, 0]);
   const rotation = useRef([0, 0, 0, 1] as [number, number, number, number]);
   const currentLookAt = useRef(new Vector3(0, 0, 0));
+  const currentSteer = useRef(0);
+  const currentEngineForce = useRef(0);
   const exitTransitionElapsed = useRef(0);
   const exitTransitionDuration = 0.5;
 
@@ -172,46 +176,43 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     }
 
-    const engineForce = 1500;
-    const maxSteerVal = 0.5;
-    const brakeForce = 50;
+    const speedKmh = Math.sqrt(velocity.current[0] ** 2 + velocity.current[2] ** 2) * 3.6;
+    const baseEngineForce = 1800;
+    const maxSteerVal = 0.58;
+    const brakeForce = 52;
+    const frontBrakeBias = 1.1;
+    const rearBrakeBias = 0.9;
 
     if (mode === 'driving') {
-      if (forward) {
-        vehicleApi.applyEngineForce(engineForce, 2);
-        vehicleApi.applyEngineForce(engineForce, 3);
-      } else if (backward) {
-        vehicleApi.applyEngineForce(-engineForce, 2);
-        vehicleApi.applyEngineForce(-engineForce, 3);
-      } else {
-        vehicleApi.applyEngineForce(0, 2);
-        vehicleApi.applyEngineForce(0, 3);
-      }
+      const steerSpeedFactor = Math.max(0.35, 1 - speedKmh / 110);
+      const targetSteer = left ? maxSteerVal * steerSpeedFactor : right ? -maxSteerVal * steerSpeedFactor : 0;
+      currentSteer.current += (targetSteer - currentSteer.current) * Math.min(1, delta * 8);
+      vehicleApi.setSteeringValue(currentSteer.current, 0);
+      vehicleApi.setSteeringValue(currentSteer.current, 1);
 
-      if (left) {
-        vehicleApi.setSteeringValue(maxSteerVal, 0);
-        vehicleApi.setSteeringValue(maxSteerVal, 1);
-      } else if (right) {
-        vehicleApi.setSteeringValue(-maxSteerVal, 0);
-        vehicleApi.setSteeringValue(-maxSteerVal, 1);
-      } else {
-        vehicleApi.setSteeringValue(0, 0);
-        vehicleApi.setSteeringValue(0, 1);
-      }
+      const speedLimiter = forward ? Math.max(0.25, 1 - speedKmh / 180) : 1;
+      const targetEngineForce = forward ? baseEngineForce * speedLimiter : backward ? -baseEngineForce * 0.75 : 0;
+      const engineResponse = targetEngineForce === 0 ? 7 : 4;
+      currentEngineForce.current += (targetEngineForce - currentEngineForce.current) * Math.min(1, delta * engineResponse);
+      vehicleApi.applyEngineForce(currentEngineForce.current, 2);
+      vehicleApi.applyEngineForce(currentEngineForce.current, 3);
 
       if (brake) {
-        vehicleApi.setBrake(brakeForce, 0);
-        vehicleApi.setBrake(brakeForce, 1);
-        vehicleApi.setBrake(brakeForce, 2);
-        vehicleApi.setBrake(brakeForce, 3);
+        vehicleApi.setBrake(brakeForce * frontBrakeBias, 0);
+        vehicleApi.setBrake(brakeForce * frontBrakeBias, 1);
+        vehicleApi.setBrake(brakeForce * rearBrakeBias, 2);
+        vehicleApi.setBrake(brakeForce * rearBrakeBias, 3);
       } else {
-        vehicleApi.setBrake(0, 0);
-        vehicleApi.setBrake(0, 1);
-        vehicleApi.setBrake(0, 2);
-        vehicleApi.setBrake(0, 3);
+        const rollingBrake = targetEngineForce === 0 ? 6 : 0;
+        vehicleApi.setBrake(rollingBrake, 0);
+        vehicleApi.setBrake(rollingBrake, 1);
+        vehicleApi.setBrake(rollingBrake, 2);
+        vehicleApi.setBrake(rollingBrake, 3);
       }
     } else {
       // Apply brakes when not driving
+      currentEngineForce.current = 0;
+      currentSteer.current = 0;
       vehicleApi.applyEngineForce(0, 2);
       vehicleApi.applyEngineForce(0, 3);
       vehicleApi.setSteeringValue(0, 0);
@@ -223,8 +224,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
     }
 
     // Calculate speed for UI (km/h)
-    const currentSpeed = Math.sqrt(velocity.current[0] ** 2 + velocity.current[2] ** 2) * 3.6;
-    setSpeed(Math.round(currentSpeed));
+    setSpeed(Math.round(speedKmh));
   });
 
   return (
