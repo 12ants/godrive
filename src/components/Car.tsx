@@ -254,12 +254,21 @@ export function Car({
 
     if (isDrivingThisCar && justPressedInteract) {
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
-
-      const leftOffset = new Vector3(...config.exitOffset);
-      leftOffset.applyQuaternion(carQuaternion);
-      const spawnPos = new Vector3(pos.current[0], pos.current[1], pos.current[2]).add(leftOffset);
-      const carForward = new Vector3(0, 0, -1).applyQuaternion(carQuaternion);
-      const yaw = Math.atan2(-carForward.x, -carForward.z);
+      const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
+      const flatForward = new Vector3(0, 0, -1).applyQuaternion(carQuaternion);
+      flatForward.y = 0;
+      if (flatForward.lengthSq() < 0.0001) {
+        flatForward.set(0, 0, -1);
+      } else {
+        flatForward.normalize();
+      }
+      const flatLeft = new Vector3().crossVectors(new Vector3(0, 1, 0), flatForward).normalize();
+      const spawnPos = carPosition
+        .clone()
+        .add(flatLeft.multiplyScalar(Math.abs(config.exitOffset[0])))
+        .add(flatForward.multiplyScalar(config.exitOffset[2]));
+      spawnPos.y = Math.max(carPosition.y + config.exitOffset[1], 3);
+      const yaw = Math.atan2(-flatForward.x, -flatForward.z);
 
       useGameStore.setState({
         playerPosition: [spawnPos.x, Math.max(spawnPos.y, 3), spawnPos.z],
