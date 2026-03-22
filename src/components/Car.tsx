@@ -178,11 +178,11 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
 
     if (mode === 'driving') {
       if (forward) {
-        vehicleApi.applyEngineForce(-engineForce, 2);
-        vehicleApi.applyEngineForce(-engineForce, 3);
-      } else if (backward) {
         vehicleApi.applyEngineForce(engineForce, 2);
         vehicleApi.applyEngineForce(engineForce, 3);
+      } else if (backward) {
+        vehicleApi.applyEngineForce(-engineForce, 2);
+        vehicleApi.applyEngineForce(-engineForce, 3);
       } else {
         vehicleApi.applyEngineForce(0, 2);
         vehicleApi.applyEngineForce(0, 3);
