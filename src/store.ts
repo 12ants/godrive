@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 
+/**
+ * Identifiers for the selectable vehicles that exist in the scene.
+ */
 export type CarId = 'coupe' | 'sports';
 
-// Central game state shared by UI, camera, player, and car systems.
+/**
+ * Central game state shared by UI, camera, player, and car systems.
+ */
 interface GameState {
   // Runtime mode controls who owns movement and camera logic.
   mode: 'walking' | 'driving' | 'entering_car' | 'exiting_car';
@@ -35,6 +40,9 @@ interface GameState {
   setCameraLookAt: (pos: [number, number, number]) => void;
 }
 
+/**
+ * Shared Zustand store for gameplay mode, camera handoff data, and HUD state.
+ */
 export const useGameStore = create<GameState>((set) => ({
   // Start in walking mode so the user can approach and enter the car.
   mode: 'walking',

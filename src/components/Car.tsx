@@ -5,8 +5,14 @@ import { Vector3, Quaternion } from 'three';
 import { CarId, useGameStore } from '../store';
 import { useControls } from '../useControls';
 
+/**
+ * Visual and handling presets for the available car models.
+ */
 type CarVariant = 'coupe' | 'sports';
 
+/**
+ * Tuning and mesh layout data for a single vehicle variant.
+ */
 interface CarConfig {
   chassisBodyArgs: [number, number, number];
   mass: number;
@@ -50,6 +56,9 @@ interface CarConfig {
   spoilerArgs: [number, number, number] | null;
 }
 
+/**
+ * Centralized per-vehicle tuning values so the gameplay code can stay variant-agnostic.
+ */
 const CAR_CONFIG: Record<CarVariant, CarConfig> = {
   coupe: {
     chassisBodyArgs: [2, 1, 4],
@@ -137,15 +146,29 @@ const CAR_CONFIG: Record<CarVariant, CarConfig> = {
   },
 };
 
+interface CarProps {
+  /**
+   * Store identifier for this car instance.
+   */
+  carId: CarId;
+  /**
+   * Initial spawn position of the chassis body.
+   */
+  position?: [number, number, number];
+  /**
+   * Visual and handling preset to apply.
+   */
+  variant?: CarVariant;
+}
+
+/**
+ * Physics vehicle with per-frame driving, camera, and enter/exit handoff logic.
+ */
 export function Car({
   carId,
   position = [5, 2, 0],
   variant = 'coupe',
-}: {
-  carId: CarId;
-  position?: [number, number, number];
-  variant?: CarVariant;
-}) {
+}: CarProps) {
   const { camera } = useThree();
   const mode = useGameStore((state) => state.mode);
   const activeCarId = useGameStore((state) => state.activeCarId);
@@ -170,6 +193,7 @@ export function Car({
     args: chassisBodyArgs,
   }));
 
+  // Base suspension setup copied into all four wheels, with axle-specific overrides below.
   const wheelInfo = {
     radius: config.wheelRadius,
     directionLocal: [0, -1, 0] as [number, number, number],
@@ -188,6 +212,7 @@ export function Car({
     customSlidingRotationalSpeed: -30,
   };
 
+  // Front wheels get steering-oriented grip; rears are a little stickier for stability.
   const wheelInfos = [
     { ...wheelInfo, frictionSlip: 4.2, chassisConnectionPointLocal: [-config.wheelTrack, config.wheelYOffset, config.frontAxleZ] as [number, number, number], isFrontWheel: true },
     { ...wheelInfo, frictionSlip: 4.2, chassisConnectionPointLocal: [config.wheelTrack, config.wheelYOffset, config.frontAxleZ] as [number, number, number], isFrontWheel: true },
@@ -220,6 +245,7 @@ export function Car({
   const exitTransitionDuration = 0.5;
 
   useEffect(() => {
+    // Pick up the previous shared look target when the car takes camera ownership.
     if (isDrivingThisCar || isEnteringThisCar) {
       const lookAt = useGameStore.getState().cameraLookAt;
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
@@ -227,12 +253,14 @@ export function Car({
   }, [isDrivingThisCar, isEnteringThisCar]);
 
   useEffect(() => {
+    // Reset the blend timer whenever the exit transition begins.
     if (isExitingThisCar) {
       exitTransitionElapsed.current = 0;
     }
   }, [isExitingThisCar]);
 
   useEffect(() => {
+    // Mirror physics body state into refs for frame-rate camera and driving logic.
     const unsubV = chassisApi.velocity.subscribe((v) => (velocity.current = v));
     const unsubP = chassisApi.position.subscribe((p) => (pos.current = p));
     const unsubR = chassisApi.quaternion.subscribe((q) => (rotation.current = q));
@@ -253,6 +281,7 @@ export function Car({
     setCarPosition(carId, [pos.current[0], pos.current[1], pos.current[2]]);
 
     if (isDrivingThisCar && justPressedInteract) {
+      // Spawn the player beside the vehicle using its current heading instead of a fixed offset.
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const flatForward = new Vector3(0, 0, -1).applyQuaternion(carQuaternion);
@@ -262,6 +291,8 @@ export function Car({
       } else {
         flatForward.normalize();
       }
+
+      // Left-of-car spawn avoids dropping the player directly into the chassis or rear wheels.
       const flatLeft = new Vector3().crossVectors(new Vector3(0, 1, 0), flatForward).normalize();
       const spawnPos = carPosition
         .clone()
@@ -281,6 +312,7 @@ export function Car({
     }
 
     if (isDrivingThisCar || isEnteringThisCar) {
+      // Standard chase camera while the car is active or the enter transition is still playing.
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
 
@@ -299,6 +331,7 @@ export function Car({
       camera.lookAt(currentLookAt.current);
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     } else if (isExitingThisCar) {
+      // Blend from the car chase camera back to the player chase camera for a smoother exit.
       exitTransitionElapsed.current = Math.min(exitTransitionElapsed.current + delta, exitTransitionDuration);
       const t = exitTransitionElapsed.current / exitTransitionDuration;
       const smoothT = t * t * (3 - 2 * t);
@@ -328,6 +361,7 @@ export function Car({
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     }
 
+    // Velocity is tracked in Cannon units, so convert to a rough km/h-style display for the HUD.
     const speedKmh = Math.sqrt(velocity.current[0] ** 2 + velocity.current[2] ** 2) * 3.6;
     const baseEngineForce = config.baseEngineForce;
     const maxSteerVal = config.maxSteerVal;
@@ -336,12 +370,14 @@ export function Car({
     const rearBrakeBias = 0.9;
 
     if (isDrivingThisCar) {
+      // Reduce steering lock at higher speed so the car stays controllable.
       const steerSpeedFactor = Math.max(0.35, 1 - speedKmh / 110);
       const targetSteer = left ? maxSteerVal * steerSpeedFactor : right ? -maxSteerVal * steerSpeedFactor : 0;
       currentSteer.current += (targetSteer - currentSteer.current) * Math.min(1, delta * 8);
       vehicleApi.setSteeringValue(currentSteer.current, 0);
       vehicleApi.setSteeringValue(currentSteer.current, 1);
 
+      // Taper engine force near top speed and add a stronger launch from a standstill.
       const speedLimiter = forward ? Math.max(0.45, 1 - speedKmh / config.topSpeed) : 1;
       const launchBoost = forward && speedKmh < config.launchBoostSpeed ? config.launchBoostMultiplier : 1;
       const targetEngineForce = forward ? baseEngineForce * speedLimiter * launchBoost : backward ? -baseEngineForce * 0.75 : 0;
@@ -351,11 +387,13 @@ export function Car({
       vehicleApi.applyEngineForce(currentEngineForce.current, 3);
 
       if (brake) {
+        // Slight front bias makes braking feel more natural and reduces spinouts.
         vehicleApi.setBrake(brakeForce * frontBrakeBias, 0);
         vehicleApi.setBrake(brakeForce * frontBrakeBias, 1);
         vehicleApi.setBrake(brakeForce * rearBrakeBias, 2);
         vehicleApi.setBrake(brakeForce * rearBrakeBias, 3);
       } else {
+        // A light rolling brake keeps parked cars from creeping down slopes.
         const rollingBrake = targetEngineForce === 0 ? config.rollingBrake : 0;
         vehicleApi.setBrake(rollingBrake, 0);
         vehicleApi.setBrake(rollingBrake, 1);
@@ -363,6 +401,7 @@ export function Car({
         vehicleApi.setBrake(rollingBrake, 3);
       }
     } else {
+      // Inactive cars stay stopped so only the selected vehicle reacts to controls.
       currentEngineForce.current = 0;
       currentSteer.current = 0;
       vehicleApi.applyEngineForce(0, 2);
@@ -382,6 +421,7 @@ export function Car({
 
   return (
     <group ref={vehicleRef as any}>
+      {/* Chassis body doubles as the main visible shell for the car mesh. */}
       <mesh ref={chassisRef as any} castShadow>
         <boxGeometry args={chassisBodyArgs} />
         <meshStandardMaterial color={config.bodyColor} />
@@ -474,6 +514,8 @@ export function Car({
           </mesh>
         )}
       </mesh>
+
+      {/* Wheels are separate kinematic bodies driven by the raycast vehicle system. */}
       <group ref={wheel1 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={wheelArgs} />

@@ -5,10 +5,27 @@ import { Vector3, Quaternion, Group } from 'three';
 import { CarId, useGameStore } from '../store';
 import { useControls } from '../useControls';
 
+/**
+ * Walking movement speed in world units per second.
+ */
 const SPEED = 10;
+
+/**
+ * Upward impulse applied when the player jumps.
+ */
 const JUMP_FORCE = 8;
 
-export function Player({ position = [0, 3, 0] }: { position?: [number, number, number] }) {
+interface PlayerProps {
+  /**
+   * Initial player spawn position for the physics body.
+   */
+  position?: [number, number, number];
+}
+
+/**
+ * Physics-driven player avatar used while walking outside the car.
+ */
+export function Player({ position = [0, 3, 0] }: PlayerProps) {
   const { camera } = useThree();
   const [ref, api] = useSphere(() => ({
     mass: 1,
@@ -33,6 +50,7 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
   const wireframeColor = '#39ff14';
 
   useEffect(() => {
+    // Resume camera interpolation from the last shared target when returning to walking.
     if (mode === 'walking') {
       const lookAt = useGameStore.getState().cameraLookAt;
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
@@ -40,6 +58,7 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
   }, [mode]);
 
   useEffect(() => {
+    // Mirror physics state into refs so frame updates can read without rerendering.
     const unsubV = api.velocity.subscribe((v) => (velocity.current = v));
     const unsubP = api.position.subscribe((p) => (pos.current = p));
     return () => {
@@ -56,6 +75,8 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
     if (!wasWalking && isNowWalking) {
       const pPos = useGameStore.getState().playerPosition;
       const pYaw = useGameStore.getState().playerYaw;
+
+      // Restore the hidden player body near the car exit point when control returns.
       // Ensure we spawn high enough to not clip into the ground
       const spawnY = Math.max(pPos[1], 3);
       api.position.set(pPos[0], spawnY, pPos[2]);
@@ -65,6 +86,7 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
       yaw.current = pYaw;
       api.wakeUp();
     } else if (wasWalking && !isNowWalking) {
+      // The walking controller stays mounted, so move it off-stage and sleep it.
       // Move player far away but not falling infinitely
       api.position.set(0, 100, 0);
       pos.current = [0, 100, 0];
@@ -86,6 +108,8 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
 
     if (mode === 'walking' && justPressedInteract) {
       const carEntries = Object.entries(useGameStore.getState().carPositions) as Array<[CarId, [number, number, number]]>;
+
+      // Find the nearest car so interact can work for both vehicles without separate triggers.
       const nearestCar = carEntries.reduce(
         (closest, [carId, carPos]) => {
           const dist = Math.sqrt(
@@ -152,11 +176,12 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
       idealCameraPosition.y = Math.max(idealCameraPosition.y, 1);
 
       camera.position.lerp(idealCameraPosition, 5 * delta);
-      
+
       const lookAtOffset = new Vector3(0, 0.5, -2); // Look slightly ahead
       lookAtOffset.applyQuaternion(playerQuaternion);
       const idealLookAt = playerPosition.clone().add(lookAtOffset);
-      
+
+      // Store the latest target so car and player camera controllers can hand off smoothly.
       currentLookAt.current.lerp(idealLookAt, 5 * delta);
       camera.lookAt(currentLookAt.current);
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
@@ -165,9 +190,12 @@ export function Player({ position = [0, 3, 0] }: { position?: [number, number, n
 
   return (
     <>
+      {/* Invisible collision sphere used by Cannon for movement and jumping. */}
       <mesh ref={ref as any} visible={false}>
         <sphereGeometry args={[0.5, 32, 32]} />
       </mesh>
+
+      {/* Visible avatar mesh follows the physics body and rotates with yaw. */}
       <group ref={groupRef} visible={mode === 'walking' || mode === 'exiting_car'}>
         <mesh castShadow>
           <sphereGeometry args={[0.5, 32, 32]} />

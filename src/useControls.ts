@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+/**
+ * Tracks the keyboard state used by both the walking and driving controllers.
+ */
 export function useControls() {
   // Unified input state consumed by both player and car.
   const [keys, setKeys] = useState({
@@ -13,7 +16,8 @@ export function useControls() {
   });
 
   useEffect(() => {
-    // Keyboard state is tracked as keydown/keyup booleans so frame loops can poll.
+    // Keyboard state is tracked as keydown/keyup booleans so frame loops can poll
+    // current intent without waiting for React event handlers every frame.
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.code) {
         // Movement axis (W/S and arrows).
@@ -80,6 +84,7 @@ export function useControls() {
       }
     };
 
+    // Window-level listeners keep controls active regardless of focused UI element.
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 

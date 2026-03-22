@@ -1,11 +1,15 @@
 import { useGameStore } from '../store';
 
+/**
+ * Heads-up display for controls, developer toggles, mode shortcuts, and speed.
+ */
 export function UI() {
   const { mode, setMode, devMode, toggleDevMode, wireframe, toggleWireframe, showPerf, togglePerf, speed } = useGameStore();
 
   return (
     <div className="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between font-mono text-xs text-white z-10">
       <div className="flex justify-between items-start w-full">
+        {/* Left panel introduces the project and reminds the player of the inputs. */}
         <div className="pointer-events-auto mt-16">
           <h1 className="text-xl font-bold mb-2 text-emerald-400">GODRIVE</h1>
           <div className="bg-black/50 p-2 rounded border border-white/10 backdrop-blur-sm">
@@ -16,6 +20,7 @@ export function UI() {
           </div>
         </div>
 
+        {/* Right panel exposes developer-only scene toggles without stealing canvas layout. */}
         <div className="flex flex-col items-end gap-2 pointer-events-auto">
           <button
             onClick={(e) => {
@@ -28,6 +33,7 @@ export function UI() {
           </button>
 
           {devMode && (
+            // Secondary toggles only appear when dev mode is enabled.
             <div className="flex flex-col gap-2 items-end bg-black/50 p-2 rounded border border-white/10 backdrop-blur-sm">
               <button
                 onClick={(e) => {
@@ -53,6 +59,7 @@ export function UI() {
       </div>
 
       <div className="flex justify-between items-end w-full">
+        {/* Manual mode buttons are handy for quick debugging of walking and driving states. */}
         <div className="bg-black/50 p-2 rounded border border-white/10 backdrop-blur-sm pointer-events-auto flex gap-2">
           <button
             onClick={(e) => {
@@ -74,6 +81,7 @@ export function UI() {
           </button>
         </div>
 
+        {/* Speed indicator reflects player speed on foot and km/h-like speed while driving. */}
         <div className="bg-black/80 p-4 rounded-full border border-emerald-500/30 w-24 h-24 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold text-emerald-400">{speed}</span>
           <span className="text-[10px] text-emerald-500/70">{mode === 'driving' ? 'KM/H' : 'SPEED'}</span>
