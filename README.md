@@ -23,6 +23,7 @@ GoDrive is a 3D driving and walking game template built with React, Vite, Three.
 
 - `npm run dev` — start the local dev server on port 3000
 - `npm run build` — create a production build
+- `npm run clean` — remove the build output directory
 - `npm run preview` — preview the production build locally
 - `npm run lint` — run TypeScript checks
 
