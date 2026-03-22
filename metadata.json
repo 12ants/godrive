@@ -1,0 +1,5 @@
+{
+  "name": "Drivengo",
+  "description": "A 3D car and walking game template focusing on performance, robustness, and simplicity using Cannon.js physics.",
+  "requestFramePermissions": []
+}
