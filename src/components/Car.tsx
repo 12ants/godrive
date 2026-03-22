@@ -241,23 +241,14 @@ export function Car({
   const currentLookAt = useRef(new Vector3(0, 0, 0));
   const currentSteer = useRef(0);
   const currentEngineForce = useRef(0);
-  const exitTransitionElapsed = useRef(0);
-  const exitTransitionDuration = 0.5;
 
   useEffect(() => {
     // Pick up the previous shared look target when the car takes camera ownership.
-    if (isDrivingThisCar || isEnteringThisCar) {
+    if (isDrivingThisCar || isEnteringThisCar || isExitingThisCar) {
       const lookAt = useGameStore.getState().cameraLookAt;
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
     }
-  }, [isDrivingThisCar, isEnteringThisCar]);
-
-  useEffect(() => {
-    // Reset the blend timer whenever the exit transition begins.
-    if (isExitingThisCar) {
-      exitTransitionElapsed.current = 0;
-    }
-  }, [isExitingThisCar]);
+  }, [isDrivingThisCar, isEnteringThisCar, isExitingThisCar]);
 
   useEffect(() => {
     // Mirror physics body state into refs for frame-rate camera and driving logic.
@@ -311,8 +302,9 @@ export function Car({
       }, 500);
     }
 
-    if (isDrivingThisCar || isEnteringThisCar) {
-      // Standard chase camera while the car is active or the enter transition is still playing.
+    if (isDrivingThisCar || isEnteringThisCar || isExitingThisCar) {
+      // Keep the camera on the car for the whole exit transition so it does not cut
+      // through the chassis while the player body is being restored beside the vehicle.
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
 
@@ -328,35 +320,6 @@ export function Car({
       const idealLookAt = carPosition.clone().add(lookAtOffset);
 
       currentLookAt.current.lerp(idealLookAt, 5 * delta);
-      camera.lookAt(currentLookAt.current);
-      useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
-    } else if (isExitingThisCar) {
-      // Blend from the car chase camera back to the player chase camera for a smoother exit.
-      exitTransitionElapsed.current = Math.min(exitTransitionElapsed.current + delta, exitTransitionDuration);
-      const t = exitTransitionElapsed.current / exitTransitionDuration;
-      const smoothT = t * t * (3 - 2 * t);
-
-      const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
-      const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
-      const carCameraOffset = new Vector3(...config.cameraOffset).applyQuaternion(carQuaternion);
-      const carCameraPosition = carPosition.clone().add(carCameraOffset);
-      carCameraPosition.y = Math.max(carCameraPosition.y, 1);
-      const carLookAtOffset = new Vector3(...config.lookAtOffset).applyQuaternion(carQuaternion);
-      const carLookAt = carPosition.clone().add(carLookAtOffset);
-
-      const { playerPosition, playerYaw } = useGameStore.getState();
-      const playerPosVec = new Vector3(playerPosition[0], playerPosition[1], playerPosition[2]);
-      const playerQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), playerYaw);
-      const playerCameraOffset = new Vector3(0, 1.5, 4).applyQuaternion(playerQuaternion);
-      const playerCameraPosition = playerPosVec.clone().add(playerCameraOffset);
-      playerCameraPosition.y = Math.max(playerCameraPosition.y, 1);
-      const playerLookAtOffset = new Vector3(0, 0.5, -2).applyQuaternion(playerQuaternion);
-      const playerLookAt = playerPosVec.clone().add(playerLookAtOffset);
-
-      const blendedCameraPosition = carCameraPosition.lerp(playerCameraPosition, smoothT);
-      const blendedLookAt = carLookAt.lerp(playerLookAt, smoothT);
-      camera.position.copy(blendedCameraPosition);
-      currentLookAt.current.lerp(blendedLookAt, 5 * delta);
       camera.lookAt(currentLookAt.current);
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     }
