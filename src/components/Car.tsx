@@ -293,15 +293,16 @@ export function Car({
 
       // Left-of-car spawn avoids dropping the player directly into the chassis or rear wheels.
       const flatLeft = new Vector3().crossVectors(new Vector3(0, 1, 0), flatForward).normalize();
+      const lateralExitDistance = Math.abs(config.exitOffset[0]) + chassisBodyArgs[0] * 0.5 + 0.85;
       const spawnPos = carPosition
         .clone()
-        .add(flatLeft.multiplyScalar(Math.abs(config.exitOffset[0])))
-        .add(flatForward.multiplyScalar(config.exitOffset[2]));
-      spawnPos.y = Math.max(carPosition.y + config.exitOffset[1], 3);
+        .add(flatLeft.multiplyScalar(lateralExitDistance))
+        .add(flatForward.multiplyScalar(config.exitOffset[2] - 0.4));
+      spawnPos.y = Math.max(carPosition.y + 0.9, 2.4);
       const yaw = Math.atan2(-flatForward.x, -flatForward.z);
 
       useGameStore.setState({
-        playerPosition: [spawnPos.x, Math.max(spawnPos.y, 3), spawnPos.z],
+        playerPosition: [spawnPos.x, Math.max(spawnPos.y, 2.4), spawnPos.z],
         playerYaw: yaw
       });
       setMode('exiting_car');

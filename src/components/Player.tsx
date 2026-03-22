@@ -70,23 +70,27 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
 
   const prevMode = useRef(mode);
   useEffect(() => {
-    const isNowWalking = mode === 'walking' || mode === 'exiting_car';
-    const wasWalking = prevMode.current === 'walking' || prevMode.current === 'exiting_car';
-
-    if (!wasWalking && isNowWalking) {
+    if (mode === 'exiting_car' && prevMode.current !== 'exiting_car') {
       const pPos = useGameStore.getState().playerPosition;
       const pYaw = useGameStore.getState().playerYaw;
 
-      // Restore the hidden player body near the car exit point when control returns.
-      // Ensure we spawn high enough to not clip into the ground
-      const spawnY = Math.max(pPos[1], 3);
+      // Stage the player at the exit point but keep the body asleep until walking resumes.
+      const spawnY = Math.max(pPos[1], 2.4);
       api.position.set(pPos[0], spawnY, pPos[2]);
-      pos.current = [pPos[0], spawnY, pPos[2]]; // Update ref immediately to prevent camera glitch
+      pos.current = [pPos[0], spawnY, pPos[2]];
       api.velocity.set(0, 0, 0);
       api.angularVelocity.set(0, 0, 0);
       yaw.current = pYaw;
+      api.sleep();
+    } else if (mode === 'walking' && prevMode.current === 'exiting_car') {
+      const pPos = useGameStore.getState().playerPosition;
+      const spawnY = Math.max(pPos[1], 2.4);
+      api.position.set(pPos[0], spawnY, pPos[2]);
+      pos.current = [pPos[0], spawnY, pPos[2]];
+      api.velocity.set(0, 0, 0);
+      api.angularVelocity.set(0, 0, 0);
       api.wakeUp();
-    } else if (wasWalking && !isNowWalking) {
+    } else if ((prevMode.current === 'walking' || prevMode.current === 'exiting_car') && mode !== 'walking' && mode !== 'exiting_car') {
       // The walking controller stays mounted, so move it off-stage and sleep it.
       // Move player far away but not falling infinitely
       api.position.set(0, 100, 0);
