@@ -232,6 +232,34 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       <mesh ref={chassisRef as any} castShadow>
         <boxGeometry args={chassisBodyArgs} />
         <meshStandardMaterial color="#00bcd4" wireframe={wireframe} />
+        <mesh position={[0, 0.45, -0.6]} castShadow>
+          <boxGeometry args={[1.5, 0.5, 1.4]} />
+          <meshStandardMaterial color="#263238" wireframe={wireframe} />
+        </mesh>
+        <mesh position={[0, 0.1, -2.05]}>
+          <boxGeometry args={[1.3, 0.25, 0.1]} />
+          <meshStandardMaterial color="#111" wireframe={wireframe} />
+        </mesh>
+        <mesh position={[-0.65, 0.05, -2.1]}>
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} wireframe={wireframe} />
+        </mesh>
+        <mesh position={[0.65, 0.05, -2.1]}>
+          <sphereGeometry args={[0.12, 16, 16]} />
+          <meshStandardMaterial color="#fff8c4" emissive="#ffe082" emissiveIntensity={1.5} wireframe={wireframe} />
+        </mesh>
+        <mesh position={[-0.6, 0.1, 2.05]}>
+          <boxGeometry args={[0.35, 0.18, 0.1]} />
+          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} wireframe={wireframe} />
+        </mesh>
+        <mesh position={[0.6, 0.1, 2.05]}>
+          <boxGeometry args={[0.35, 0.18, 0.1]} />
+          <meshStandardMaterial color="#ff5252" emissive="#ff1744" emissiveIntensity={1.3} wireframe={wireframe} />
+        </mesh>
+        <mesh position={[0, 0.35, 2]}>
+          <boxGeometry args={[1.2, 0.15, 0.1]} />
+          <meshStandardMaterial color="#37474f" wireframe={wireframe} />
+        </mesh>
       </mesh>
       <group ref={wheel1 as any}>
         <mesh rotation={[0, 0, Math.PI / 2]}>
