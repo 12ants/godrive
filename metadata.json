@@ -1,5 +1,5 @@
 {
-  "name": "Drivengo",
-  "description": "A 3D car and walking game template focusing on performance, robustness, and simplicity using Cannon.js physics.",
+  "name": "GoDrive",
+  "description": "GoDrive is a 3D driving and walking game template focused on performance, robustness, and simplicity using Cannon.js physics.",
   "requestFramePermissions": []
 }

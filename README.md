@@ -1,20 +1,38 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# GoDrive
 
-# Run and deploy your AI Studio app
+GoDrive is a 3D driving and walking game template built with React, Vite, Three.js, and Cannon physics.
 
-This contains everything you need to run your app locally.
+## Prerequisites
 
-View your app in AI Studio: https://ai.studio/apps/3dc26737-b007-4e30-b6d7-bd2a0ebe591e
+- Node.js 18+ (or newer LTS)
+- npm
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+## Getting Started
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+3. Open the app at `http://localhost:3000`.
+
+## Available Scripts
+
+- `npm run dev` — start the local dev server on port 3000
+- `npm run build` — create a production build
+- `npm run preview` — preview the production build locally
+- `npm run lint` — run TypeScript checks
+
+## Project Structure
+
+- `src/components/` — scene, player, car, environment, and UI components
+- `src/store.ts` — game state management
+- `src/useControls.ts` — input/control mapping
+
+## Notes
+
+- Environment examples are provided in `.env.example`.
+- If you use Gemini features, configure `GEMINI_API_KEY` in your local environment.
