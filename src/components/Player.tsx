@@ -26,7 +26,7 @@ interface PlayerProps {
 /**
  * Physics-driven player avatar used while walking outside the car.
  */
-export function Player({ position = [0, 3, 0] }: PlayerProps) {
+export function Player({ position = [0, 1, 0] }: PlayerProps) {
   const { camera } = useThree();
   const [ref, api] = useSphere(() => ({
     mass: 1,
@@ -40,7 +40,7 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
   const pos = useRef([0, 0, 0]);
   const yaw = useRef(0);
   const groupRef = useRef<Group>(null);
-  const currentLookAt = useRef(new Vector3(0, 2.5, -2));
+  const currentLookAt = useRef(new Vector3(0, 0.5, 0));
   
   const { forward, backward, left, right, jump, interact } = useControls();
   const mode = useGameStore((state) => state.mode);
@@ -76,7 +76,7 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
       const pYaw = useGameStore.getState().playerYaw;
 
       // Stage the player at the exit point but keep the body asleep until walking resumes.
-      const spawnY = Math.max(pPos[1], 2.4);
+      const spawnY = Math.max(pPos[1], 0.4);
       api.position.set(pPos[0], spawnY, pPos[2]);
       pos.current = [pPos[0], spawnY, pPos[2]];
       api.velocity.set(0, 0, 0);
@@ -85,7 +85,7 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
       api.sleep();
     } else if (mode === 'walking' && prevMode.current === 'exiting_car') {
       const pPos = useGameStore.getState().playerPosition;
-      const spawnY = Math.max(pPos[1], 2.4);
+      const spawnY = Math.max(pPos[1], 0.4);
       api.position.set(pPos[0], spawnY, pPos[2]);
       pos.current = [pPos[0], spawnY, pPos[2]];
       api.velocity.set(0, 0, 0);
@@ -144,8 +144,8 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
 
     if (mode === 'walking') {
       // Tank controls for player
-      if (left) yaw.current += 3 * delta;
-      if (right) yaw.current -= 3 * delta;
+      if (left) yaw.current += 2 * delta;
+      if (right) yaw.current -= 2 * delta;
 
       const direction = new Vector3(0, 0, (backward ? 1 : 0) - (forward ? 1 : 0));
       direction.applyAxisAngle(new Vector3(0, 1, 0), yaw.current);
@@ -176,14 +176,14 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
       const playerPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const playerQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), yaw.current);
 
-      const cameraOffset = new Vector3(0, 1.5, 4); // Behind and slightly up
+      const cameraOffset = new Vector3(0, 0.5, 5); // Behind and slightly up
       cameraOffset.applyQuaternion(playerQuaternion);
       const idealCameraPosition = playerPosition.clone().add(cameraOffset);
       idealCameraPosition.y = Math.max(idealCameraPosition.y, 1);
 
       camera.position.lerp(idealCameraPosition, 5 * delta);
 
-      const lookAtOffset = new Vector3(0, 0.5, -2); // Look slightly ahead
+      const lookAtOffset = new Vector3(0, 2, -5); // Look slightly ahead
       lookAtOffset.applyQuaternion(playerQuaternion);
       const idealLookAt = playerPosition.clone().add(lookAtOffset);
 
