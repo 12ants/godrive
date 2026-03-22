@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export function useControls() {
+  // Unified input state consumed by both player and car.
   const [keys, setKeys] = useState({
     forward: false,
     backward: false,
@@ -12,8 +13,10 @@ export function useControls() {
   });
 
   useEffect(() => {
+    // Keyboard state is tracked as keydown/keyup booleans so frame loops can poll.
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.code) {
+        // Movement axis (W/S and arrows).
         case 'KeyW':
         case 'ArrowUp':
           setKeys((k) => ({ ...k, forward: true }));
@@ -30,9 +33,17 @@ export function useControls() {
         case 'ArrowRight':
           setKeys((k) => ({ ...k, right: true }));
           break;
+
+        // Space does double duty:
+        // - jump while walking
+        // - brake while driving
         case 'Space':
           setKeys((k) => ({ ...k, jump: true, brake: true }));
           break;
+
+        // Interaction key:
+        // - enter car while near it
+        // - exit car while driving
         case 'KeyE':
         case 'Enter':
           setKeys((k) => ({ ...k, interact: true }));
@@ -40,6 +51,7 @@ export function useControls() {
       }
     };
 
+    // Mirror keyup handlers to clear pressed state immediately.
     const handleKeyUp = (e: KeyboardEvent) => {
       switch (e.code) {
         case 'KeyW':
