@@ -1,5 +1,39 @@
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import type { ControlState } from '../store';
 import { useGameStore } from '../store';
+
+type TouchControl = Extract<keyof ControlState, 'forward' | 'backward' | 'left' | 'right' | 'interact' | 'brake'>;
+
+const touchPadButtonClass = 'w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25';
+const touchActionButtonClass = 'min-w-28 rounded-2xl border bg-black/70 px-4 py-3 text-left backdrop-blur-md';
+
+interface TouchButtonProps {
+  ariaLabel: string;
+  children: ReactNode;
+  control: TouchControl;
+  className: string;
+  onTouchControl: (control: TouchControl, pressed: boolean) => void;
+}
+
+function TouchButton({ ariaLabel, children, control, className, onTouchControl }: TouchButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        onTouchControl(control, true);
+      }}
+      onPointerUp={() => onTouchControl(control, false)}
+      onPointerCancel={() => onTouchControl(control, false)}
+      onPointerLeave={() => onTouchControl(control, false)}
+      className={className}
+    >
+      {children}
+    </button>
+  );
+}
 
 /**
  * Heads-up display for controls, developer toggles, mode shortcuts, and speed.
@@ -49,7 +83,7 @@ export function UI() {
     };
   }, [resetTouchControls]);
 
-  const handleTouchControl = (control: 'forward' | 'backward' | 'left' | 'right' | 'interact' | 'brake', pressed: boolean) => {
+  const handleTouchControl = (control: TouchControl, pressed: boolean) => {
     setTouchControl(control, pressed);
   };
 
@@ -165,103 +199,37 @@ export function UI() {
       {showTouchControls && (
         <>
           <div className="pointer-events-auto absolute left-4 bottom-24 flex flex-col items-center gap-2 select-none touch-none">
-            <button
-              type="button"
-              aria-label="Accelerate or move forward"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                handleTouchControl('forward', true);
-              }}
-              onPointerUp={() => handleTouchControl('forward', false)}
-              onPointerCancel={() => handleTouchControl('forward', false)}
-              onPointerLeave={() => handleTouchControl('forward', false)}
-              className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
-            >
-              ▲
-            </button>
+            <TouchButton ariaLabel="Accelerate or move forward" control="forward" onTouchControl={handleTouchControl} className={touchPadButtonClass}>▲</TouchButton>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Steer or turn left"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  handleTouchControl('left', true);
-                }}
-                onPointerUp={() => handleTouchControl('left', false)}
-                onPointerCancel={() => handleTouchControl('left', false)}
-                onPointerLeave={() => handleTouchControl('left', false)}
-                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
-              >
-                ◀
-              </button>
-
-              <button
-                type="button"
-                aria-label="Reverse or move backward"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  handleTouchControl('backward', true);
-                }}
-                onPointerUp={() => handleTouchControl('backward', false)}
-                onPointerCancel={() => handleTouchControl('backward', false)}
-                onPointerLeave={() => handleTouchControl('backward', false)}
-                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
-              >
-                ▼
-              </button>
-
-              <button
-                type="button"
-                aria-label="Steer or turn right"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  handleTouchControl('right', true);
-                }}
-                onPointerUp={() => handleTouchControl('right', false)}
-                onPointerCancel={() => handleTouchControl('right', false)}
-                onPointerLeave={() => handleTouchControl('right', false)}
-                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
-              >
-                ▶
-              </button>
+              <TouchButton ariaLabel="Steer or turn left" control="left" onTouchControl={handleTouchControl} className={touchPadButtonClass}>◀</TouchButton>
+              <TouchButton ariaLabel="Reverse or move backward" control="backward" onTouchControl={handleTouchControl} className={touchPadButtonClass}>▼</TouchButton>
+              <TouchButton ariaLabel="Steer or turn right" control="right" onTouchControl={handleTouchControl} className={touchPadButtonClass}>▶</TouchButton>
             </div>
           </div>
 
           <div className="pointer-events-auto absolute right-4 bottom-24 flex flex-col items-end gap-3 select-none touch-none">
-            <button
-              type="button"
-              aria-label={mode === 'driving' ? 'Exit the active car' : canEnterCar ? 'Enter the nearby car' : 'Interact'}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                handleTouchControl('interact', true);
-              }}
-              onPointerUp={() => handleTouchControl('interact', false)}
-              onPointerCancel={() => handleTouchControl('interact', false)}
-              onPointerLeave={() => handleTouchControl('interact', false)}
-              className="min-w-28 rounded-2xl border border-emerald-500/30 bg-black/70 px-4 py-3 text-left backdrop-blur-md active:bg-emerald-500/25"
+            <TouchButton
+              ariaLabel={mode === 'driving' ? 'Exit the active car' : canEnterCar ? 'Enter the nearby car' : 'Interact'}
+              control="interact"
+              onTouchControl={handleTouchControl}
+              className={`${touchActionButtonClass} border-emerald-500/30 active:bg-emerald-500/25`}
             >
               <span className="block text-[10px] text-emerald-500/70">ACTION</span>
               <span className="block text-sm font-bold text-emerald-300">
                 {mode === 'driving' ? 'EXIT CAR' : canEnterCar ? 'ENTER CAR' : 'INTERACT'}
               </span>
-            </button>
+            </TouchButton>
 
-            <button
-              type="button"
-              aria-label="Brake"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                handleTouchControl('brake', true);
-              }}
-              onPointerUp={() => handleTouchControl('brake', false)}
-              onPointerCancel={() => handleTouchControl('brake', false)}
-              onPointerLeave={() => handleTouchControl('brake', false)}
-              className="min-w-28 rounded-2xl border border-white/15 bg-black/70 px-4 py-3 text-left backdrop-blur-md active:bg-white/15"
+            <TouchButton
+              ariaLabel="Brake"
+              control="brake"
+              onTouchControl={handleTouchControl}
+              className={`${touchActionButtonClass} border-white/15 active:bg-white/15`}
             >
               <span className="block text-[10px] text-white/60">VEHICLE</span>
               <span className="block text-sm font-bold text-white">BRAKE</span>
-            </button>
+            </TouchButton>
           </div>
         </>
       )}

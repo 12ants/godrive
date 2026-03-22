@@ -2,6 +2,7 @@ import { useBox, useCylinder, useRaycastVehicle } from '@react-three/cannon';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Vector3, Quaternion } from 'three';
+import { VEHICLE_TRANSITION_DURATION_MS } from '../gameConstants';
 import { CarId, useGameStore } from '../store';
 import { useControls } from '../useControls';
 
@@ -308,7 +309,7 @@ export function Car({
       setMode('exiting_car');
       setTimeout(() => {
         setMode('walking');
-      }, 500);
+      }, VEHICLE_TRANSITION_DURATION_MS);
     }
 
     if (isDrivingThisCar || isEnteringThisCar) {

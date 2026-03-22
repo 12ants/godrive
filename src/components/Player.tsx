@@ -2,6 +2,7 @@ import { useSphere } from '@react-three/cannon';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Vector3, Quaternion, Group } from 'three';
+import { CAR_INTERACTION_DISTANCE, VEHICLE_TRANSITION_DURATION_MS } from '../gameConstants';
 import { CarId, useGameStore } from '../store';
 import { useControls } from '../useControls';
 
@@ -128,16 +129,16 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
       },
       { carId: 'coupe' as CarId, distance: Infinity }
     );
-    const isNearCar = nearestCar.distance < 5;
+    const isNearCar = nearestCar.distance < CAR_INTERACTION_DISTANCE;
     setCanEnterCar(mode === 'walking' && isNearCar);
 
     if (mode === 'walking' && justPressedInteract) {
-      if (nearestCar.distance < 5) {
+      if (nearestCar.distance < CAR_INTERACTION_DISTANCE) {
         setActiveCarId(nearestCar.carId);
         setMode('entering_car');
         setTimeout(() => {
           setMode('driving');
-        }, 500);
+        }, VEHICLE_TRANSITION_DURATION_MS);
       }
     }
 
