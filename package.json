@@ -3,34 +3,36 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@react-three/cannon": "^6.6.0",
     "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^8.18.0",
+    "@react-three/fiber": "^9.5.0",
     "cannon-es": "^0.20.0",
     "r3f-perf": "^7.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "three": "^0.183.2",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
-    "@types/node": "^22.14.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@types/three": "^0.183.1",
-    "@vitejs/plugin-react": "^5.2.0",
-    "autoprefixer": "^10.4.21",
+    "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.1.14",
-    "typescript": "~5.8.2",
-    "vite": "^6.4.1"
+    "typescript": "^5.9.3",
+    "vite": "^8.0.1"
   }
 }

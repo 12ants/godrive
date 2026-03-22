@@ -4,7 +4,7 @@ GoDrive is a 3D driving and walking game template built with React, Vite, Three.
 
 ## Prerequisites
 
-- Node.js 18+ (or newer LTS)
+- Node.js 20.19+ or 22.12+
 - npm
 
 ## Getting Started
