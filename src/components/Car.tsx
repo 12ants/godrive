@@ -241,6 +241,8 @@ export function Car({
   const currentLookAt = useRef(new Vector3(0, 0, 0));
   const currentSteer = useRef(0);
   const currentEngineForce = useRef(0);
+  const exitTransitionElapsed = useRef(0);
+  const exitTransitionDuration = 0.5;
 
   useEffect(() => {
     // Pick up the previous shared look target when the car takes camera ownership.
@@ -249,6 +251,12 @@ export function Car({
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
     }
   }, [isDrivingThisCar, isEnteringThisCar, isExitingThisCar]);
+
+  useEffect(() => {
+    if (isExitingThisCar) {
+      exitTransitionElapsed.current = 0;
+    }
+  }, [isExitingThisCar]);
 
   useEffect(() => {
     // Mirror physics body state into refs for frame-rate camera and driving logic.
@@ -302,9 +310,8 @@ export function Car({
       }, 500);
     }
 
-    if (isDrivingThisCar || isEnteringThisCar || isExitingThisCar) {
-      // Keep the camera on the car for the whole exit transition so it does not cut
-      // through the chassis while the player body is being restored beside the vehicle.
+    if (isDrivingThisCar || isEnteringThisCar) {
+      // Standard chase camera while the car is active or the enter transition is still playing.
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
 
@@ -320,6 +327,35 @@ export function Car({
       const idealLookAt = carPosition.clone().add(lookAtOffset);
 
       currentLookAt.current.lerp(idealLookAt, 5 * delta);
+      camera.lookAt(currentLookAt.current);
+      useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
+    } else if (isExitingThisCar) {
+      // Ease toward a higher, side-biased angle so the handoff stays outside the car body
+      // while still framing the player spawn point.
+      exitTransitionElapsed.current = Math.min(exitTransitionElapsed.current + delta, exitTransitionDuration);
+      const t = exitTransitionElapsed.current / exitTransitionDuration;
+      const smoothT = t * t * (3 - 2 * t);
+
+      const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
+      const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
+      const baseCameraOffset = new Vector3(...config.cameraOffset);
+      const exitCameraOffset = new Vector3(
+        config.exitOffset[0] * 1.6,
+        config.cameraOffset[1] + 0.8,
+        Math.max(config.cameraOffset[2] - 2, 6),
+      );
+      const blendedCameraOffset = baseCameraOffset.lerp(exitCameraOffset, smoothT).applyQuaternion(carQuaternion);
+      const idealCameraPosition = carPosition.clone().add(blendedCameraOffset);
+      idealCameraPosition.y = Math.max(idealCameraPosition.y, 1.5);
+      camera.position.lerp(idealCameraPosition, 6 * delta);
+
+      const baseLookAtOffset = new Vector3(...config.lookAtOffset).applyQuaternion(carQuaternion);
+      const carLookAt = carPosition.clone().add(baseLookAtOffset);
+      const { playerPosition } = useGameStore.getState();
+      const playerPosVec = new Vector3(playerPosition[0], playerPosition[1] + 0.75, playerPosition[2]);
+      const idealLookAt = carLookAt.lerp(playerPosVec, smoothT * 0.65);
+
+      currentLookAt.current.lerp(idealLookAt, 6 * delta);
       camera.lookAt(currentLookAt.current);
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     }
