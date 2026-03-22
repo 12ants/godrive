@@ -1,13 +1,59 @@
+import { useEffect, useState } from 'react';
 import { useGameStore } from '../store';
 
 /**
  * Heads-up display for controls, developer toggles, mode shortcuts, and speed.
  */
 export function UI() {
-  const { mode, setMode, devMode, toggleDevMode, wireframe, toggleWireframe, showPerf, togglePerf, speed } = useGameStore();
+  const {
+    mode,
+    setMode,
+    devMode,
+    toggleDevMode,
+    wireframe,
+    toggleWireframe,
+    showPerf,
+    togglePerf,
+    speed,
+    setTouchControl,
+    resetTouchControls,
+  } = useGameStore();
+  const [showTouchControls, setShowTouchControls] = useState(false);
+
+  useEffect(() => {
+    const detectTouch = () => {
+      const hasTouchPoints = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
+      const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+      const noHover = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
+      setShowTouchControls(hasTouchPoints || coarsePointer || noHover);
+    };
+
+    detectTouch();
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+    const noHoverQuery = window.matchMedia('(hover: none)');
+    coarsePointerQuery.addEventListener('change', detectTouch);
+    noHoverQuery.addEventListener('change', detectTouch);
+    window.addEventListener('blur', resetTouchControls);
+
+    return () => {
+      coarsePointerQuery.removeEventListener('change', detectTouch);
+      noHoverQuery.removeEventListener('change', detectTouch);
+      window.removeEventListener('blur', resetTouchControls);
+      resetTouchControls();
+    };
+  }, [resetTouchControls]);
+
+  const handleTouchControl = (control: 'forward' | 'backward' | 'left' | 'right' | 'interact' | 'brake', pressed: boolean) => {
+    setTouchControl(control, pressed);
+  };
 
   return (
-    <div className="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between font-mono text-xs text-white z-10">
+    <div className={`absolute inset-0 pointer-events-none p-4 ${showTouchControls ? 'pb-44' : ''} flex flex-col justify-between font-mono text-xs text-white z-10`}>
       <div className="flex justify-between items-start w-full">
         {/* Left panel keeps the controls reference available without taking permanent space. */}
         <div className="pointer-events-auto mt-16 flex flex-col gap-2">
@@ -20,6 +66,7 @@ export function UI() {
               <p>WASD / Arrows : Move / Drive</p>
               <p>Space : Jump / Brake</p>
               <p>E / Enter : Interact</p>
+              {showTouchControls && <p>Touch Overlay : Drive / Walk / Interact</p>}
             </div>
           </details>
         </div>
@@ -108,6 +155,108 @@ export function UI() {
           <span className="text-[10px] text-emerald-500/70">{mode === 'driving' ? 'KM/H' : 'SPEED'}</span>
         </div>
       </div>
+
+      {showTouchControls && (
+        <>
+          <div className="pointer-events-auto absolute left-4 bottom-24 flex flex-col items-center gap-2 select-none touch-none">
+            <button
+              type="button"
+              aria-label="Accelerate or move forward"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleTouchControl('forward', true);
+              }}
+              onPointerUp={() => handleTouchControl('forward', false)}
+              onPointerCancel={() => handleTouchControl('forward', false)}
+              onPointerLeave={() => handleTouchControl('forward', false)}
+              className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
+            >
+              ▲
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Steer or turn left"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleTouchControl('left', true);
+                }}
+                onPointerUp={() => handleTouchControl('left', false)}
+                onPointerCancel={() => handleTouchControl('left', false)}
+                onPointerLeave={() => handleTouchControl('left', false)}
+                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
+              >
+                ◀
+              </button>
+
+              <button
+                type="button"
+                aria-label="Reverse or move backward"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleTouchControl('backward', true);
+                }}
+                onPointerUp={() => handleTouchControl('backward', false)}
+                onPointerCancel={() => handleTouchControl('backward', false)}
+                onPointerLeave={() => handleTouchControl('backward', false)}
+                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
+              >
+                ▼
+              </button>
+
+              <button
+                type="button"
+                aria-label="Steer or turn right"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleTouchControl('right', true);
+                }}
+                onPointerUp={() => handleTouchControl('right', false)}
+                onPointerCancel={() => handleTouchControl('right', false)}
+                onPointerLeave={() => handleTouchControl('right', false)}
+                className="w-16 h-16 rounded-2xl border border-white/15 bg-black/65 backdrop-blur-md text-lg font-bold text-emerald-300 active:bg-emerald-500/25"
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+
+          <div className="pointer-events-auto absolute right-4 bottom-24 flex flex-col items-end gap-3 select-none touch-none">
+            <button
+              type="button"
+              aria-label={mode === 'driving' ? 'Exit the active car' : 'Enter the nearby car'}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleTouchControl('interact', true);
+              }}
+              onPointerUp={() => handleTouchControl('interact', false)}
+              onPointerCancel={() => handleTouchControl('interact', false)}
+              onPointerLeave={() => handleTouchControl('interact', false)}
+              className="min-w-28 rounded-2xl border border-emerald-500/30 bg-black/70 px-4 py-3 text-left backdrop-blur-md active:bg-emerald-500/25"
+            >
+              <span className="block text-[10px] text-emerald-500/70">ACTION</span>
+              <span className="block text-sm font-bold text-emerald-300">{mode === 'driving' ? 'EXIT CAR' : 'ENTER CAR'}</span>
+            </button>
+
+            <button
+              type="button"
+              aria-label="Brake"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleTouchControl('brake', true);
+              }}
+              onPointerUp={() => handleTouchControl('brake', false)}
+              onPointerCancel={() => handleTouchControl('brake', false)}
+              onPointerLeave={() => handleTouchControl('brake', false)}
+              className="min-w-28 rounded-2xl border border-white/15 bg-black/70 px-4 py-3 text-left backdrop-blur-md active:bg-white/15"
+            >
+              <span className="block text-[10px] text-white/60">VEHICLE</span>
+              <span className="block text-sm font-bold text-white">BRAKE</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

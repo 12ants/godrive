@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { ControlState, useGameStore } from './store';
 
 /**
  * Tracks the keyboard state used by both the walking and driving controllers.
  */
 export function useControls() {
   // Unified input state consumed by both player and car.
-  const [keys, setKeys] = useState({
+  const [keys, setKeys] = useState<ControlState>({
     forward: false,
     backward: false,
     left: false,
@@ -14,6 +15,7 @@ export function useControls() {
     interact: false,
     brake: false,
   });
+  const touchControls = useGameStore((state) => state.touchControls);
 
   useEffect(() => {
     // Keyboard state is tracked as keydown/keyup booleans so frame loops can poll
@@ -94,5 +96,13 @@ export function useControls() {
     };
   }, []);
 
-  return keys;
+  return {
+    forward: keys.forward || touchControls.forward,
+    backward: keys.backward || touchControls.backward,
+    left: keys.left || touchControls.left,
+    right: keys.right || touchControls.right,
+    jump: keys.jump || touchControls.jump,
+    interact: keys.interact || touchControls.interact,
+    brake: keys.brake || touchControls.brake,
+  };
 }

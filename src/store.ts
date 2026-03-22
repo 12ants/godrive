@@ -6,6 +6,29 @@ import { create } from 'zustand';
 export type CarId = 'coupe' | 'sports';
 
 /**
+ * Unified input state shared across keyboard and touch controls.
+ */
+export interface ControlState {
+  forward: boolean;
+  backward: boolean;
+  left: boolean;
+  right: boolean;
+  jump: boolean;
+  interact: boolean;
+  brake: boolean;
+}
+
+const defaultControlState: ControlState = {
+  forward: false,
+  backward: false,
+  left: false,
+  right: false,
+  jump: false,
+  interact: false,
+  brake: false,
+};
+
+/**
  * Central game state shared by UI, camera, player, and car systems.
  */
 interface GameState {
@@ -38,6 +61,11 @@ interface GameState {
   // Last camera target so transitions start from the current view direction.
   cameraLookAt: [number, number, number];
   setCameraLookAt: (pos: [number, number, number]) => void;
+
+  // Touch controls are merged with keyboard state inside the input hook.
+  touchControls: ControlState;
+  setTouchControl: (control: keyof ControlState, pressed: boolean) => void;
+  resetTouchControls: () => void;
 }
 
 /**
@@ -80,4 +108,14 @@ export const useGameStore = create<GameState>((set) => ({
   setPlayerYaw: (yaw) => set({ playerYaw: yaw }),
   cameraLookAt: [0, 2.5, -2],
   setCameraLookAt: (pos) => set({ cameraLookAt: pos }),
+
+  touchControls: defaultControlState,
+  setTouchControl: (control, pressed) =>
+    set((state) => ({
+      touchControls: {
+        ...state.touchControls,
+        [control]: pressed,
+      },
+    })),
+  resetTouchControls: () => set({ touchControls: defaultControlState }),
 }));
