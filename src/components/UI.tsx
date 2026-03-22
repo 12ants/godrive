@@ -7,12 +7,12 @@ export function UI() {
     <div className="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between font-mono text-xs text-white z-10">
       <div className="flex justify-between items-start w-full">
         <div className="pointer-events-auto mt-16">
-          <h1 className="text-xl font-bold mb-2 text-emerald-400">DRIVENGO</h1>
+          <h1 className="text-xl font-bold mb-2 text-emerald-400">GODRIVE</h1>
           <div className="bg-black/50 p-2 rounded border border-white/10 backdrop-blur-sm">
             <p className="text-emerald-300 mb-1">CONTROLS</p>
             <p>WASD / Arrows : Move / Drive</p>
             <p>Space : Jump / Brake</p>
-            <p>E / Enter : Interact (Future)</p>
+            <p>E / Enter : Interact</p>
           </div>
         </div>
 

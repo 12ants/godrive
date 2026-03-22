@@ -34,5 +34,4 @@ GoDrive is a 3D driving and walking game template built with React, Vite, Three.
 
 ## Notes
 
-- Environment examples are provided in `.env.example`.
-- If you use Gemini features, configure `GEMINI_API_KEY` in your local environment.
+- The app currently runs as a frontend-only project with no required environment variables.
