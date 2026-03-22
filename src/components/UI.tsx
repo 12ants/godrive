@@ -15,6 +15,7 @@ export function UI() {
     showPerf,
     togglePerf,
     speed,
+    canEnterCar,
     setTouchControl,
     resetTouchControls,
   } = useGameStore();
@@ -58,6 +59,11 @@ export function UI() {
         {/* Left panel keeps the controls reference available without taking permanent space. */}
         <div className="pointer-events-auto mt-16 flex flex-col gap-2">
           <h1 className="text-xl font-bold text-emerald-400">GODRIVE</h1>
+          {canEnterCar && (
+            <div className="self-start rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] tracking-[0.2em] text-emerald-300/90 backdrop-blur-sm">
+              {showTouchControls ? 'CAR NEARBY · TAP ACTION TO ENTER' : 'CAR NEARBY · PRESS E TO ENTER'}
+            </div>
+          )}
           <details className="group rounded border border-white/10 bg-black/50 backdrop-blur-sm">
             <summary className="cursor-pointer list-none px-3 py-2 text-emerald-300">
               CONTROLS
@@ -225,7 +231,7 @@ export function UI() {
           <div className="pointer-events-auto absolute right-4 bottom-24 flex flex-col items-end gap-3 select-none touch-none">
             <button
               type="button"
-              aria-label={mode === 'driving' ? 'Exit the active car' : 'Enter the nearby car'}
+              aria-label={mode === 'driving' ? 'Exit the active car' : canEnterCar ? 'Enter the nearby car' : 'Interact'}
               onPointerDown={(e) => {
                 e.preventDefault();
                 handleTouchControl('interact', true);
@@ -236,7 +242,9 @@ export function UI() {
               className="min-w-28 rounded-2xl border border-emerald-500/30 bg-black/70 px-4 py-3 text-left backdrop-blur-md active:bg-emerald-500/25"
             >
               <span className="block text-[10px] text-emerald-500/70">ACTION</span>
-              <span className="block text-sm font-bold text-emerald-300">{mode === 'driving' ? 'EXIT CAR' : 'ENTER CAR'}</span>
+              <span className="block text-sm font-bold text-emerald-300">
+                {mode === 'driving' ? 'EXIT CAR' : canEnterCar ? 'ENTER CAR' : 'INTERACT'}
+              </span>
             </button>
 
             <button

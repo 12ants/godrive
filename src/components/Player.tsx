@@ -45,6 +45,7 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
   const mode = useGameStore((state) => state.mode);
   const setMode = useGameStore((state) => state.setMode);
   const setActiveCarId = useGameStore((state) => state.setActiveCarId);
+  const setCanEnterCar = useGameStore((state) => state.setCanEnterCar);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const wireframe = useGameStore((state) => state.wireframe);
   const wireframeColor = '#39ff14';
@@ -106,27 +107,27 @@ export function Player({ position = [0, 3, 0] }: PlayerProps) {
     // Always update player position in store
     useGameStore.setState({ playerPosition: [pos.current[0], pos.current[1], pos.current[2]] });
 
+    const carEntries = Object.entries(useGameStore.getState().carPositions) as Array<[CarId, [number, number, number]]>;
+    const nearestCar = carEntries.reduce(
+      (closest, [carId, carPos]) => {
+        const dist = Math.sqrt(
+          Math.pow(pos.current[0] - carPos[0], 2) +
+          Math.pow(pos.current[1] - carPos[1], 2) +
+          Math.pow(pos.current[2] - carPos[2], 2)
+        );
+
+        if (dist < closest.distance) {
+          return { carId, distance: dist };
+        }
+
+        return closest;
+      },
+      { carId: 'coupe' as CarId, distance: Infinity }
+    );
+    const isNearCar = nearestCar.distance < 5;
+    setCanEnterCar(mode === 'walking' && isNearCar);
+
     if (mode === 'walking' && justPressedInteract) {
-      const carEntries = Object.entries(useGameStore.getState().carPositions) as Array<[CarId, [number, number, number]]>;
-
-      // Find the nearest car so interact can work for both vehicles without separate triggers.
-      const nearestCar = carEntries.reduce(
-        (closest, [carId, carPos]) => {
-          const dist = Math.sqrt(
-            Math.pow(pos.current[0] - carPos[0], 2) +
-            Math.pow(pos.current[1] - carPos[1], 2) +
-            Math.pow(pos.current[2] - carPos[2], 2)
-          );
-
-          if (dist < closest.distance) {
-            return { carId, distance: dist };
-          }
-
-          return closest;
-        },
-        { carId: 'coupe' as CarId, distance: Infinity }
-      );
-
       if (nearestCar.distance < 5) {
         setActiveCarId(nearestCar.carId);
         setMode('entering_car');

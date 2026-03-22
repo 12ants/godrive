@@ -62,6 +62,10 @@ interface GameState {
   cameraLookAt: [number, number, number];
   setCameraLookAt: (pos: [number, number, number]) => void;
 
+  // Nearby-car hint state for subtle HUD prompts.
+  canEnterCar: boolean;
+  setCanEnterCar: (canEnterCar: boolean) => void;
+
   // Touch controls are merged with keyboard state inside the input hook.
   touchControls: ControlState;
   setTouchControl: (control: keyof ControlState, pressed: boolean) => void;
@@ -108,6 +112,8 @@ export const useGameStore = create<GameState>((set) => ({
   setPlayerYaw: (yaw) => set({ playerYaw: yaw }),
   cameraLookAt: [0, 2.5, -2],
   setCameraLookAt: (pos) => set({ cameraLookAt: pos }),
+  canEnterCar: false,
+  setCanEnterCar: (canEnterCar) => set({ canEnterCar }),
 
   touchControls: defaultControlState,
   setTouchControl: (control, pressed) =>
