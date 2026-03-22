@@ -35,7 +35,7 @@ export function Scene() {
       <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
 
-      <Physics broadphase="sap" gravity={[0, -9.81, 0]}>
+      <Physics broadphase="SAP" gravity={[0, -9.81, 0]}>
         <Environment />
         <Player />
         <Car />

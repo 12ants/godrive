@@ -22,7 +22,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
 
   const wheelInfo = {
     radius: 0.5,
-    directionLocal: [0, -1, 0],
+    directionLocal: [0, -1, 0] as [number, number, number],
     suspensionStiffness: 30,
     suspensionRestLength: 0.3,
     maxSuspensionForce: 100000,
@@ -31,18 +31,18 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
     dampingCompression: 4.4,
     frictionSlip: 5,
     rollInfluence: 0.01,
-    axleLocal: [-1, 0, 0],
-    chassisConnectionPointLocal: [1, 0, 1],
+    axleLocal: [-1, 0, 0] as [number, number, number],
+    chassisConnectionPointLocal: [1, 0, 1] as [number, number, number],
     isFrontWheel: false,
     useCustomSlidingRotationalSpeed: true,
     customSlidingRotationalSpeed: -30,
   };
 
   const wheelInfos = [
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, 1.5], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, 1.5], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, -1.5], isFrontWheel: false },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, -1.5], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: false },
   ];
 
   const [wheel1] = useCylinder(() => ({ mass: 1, type: 'Kinematic', material: 'wheel', collisionFilterGroup: 0, args: [0.5, 0.5, 0.5, 16] }));
