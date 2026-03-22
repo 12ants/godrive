@@ -31,7 +31,7 @@ export function Player({ position = [0, 2, 0] }: { position?: [number, number, n
   const wireframe = useGameStore((state) => state.wireframe);
 
   useEffect(() => {
-    if (mode === 'walking' || mode === 'exiting_car') {
+    if (mode === 'walking') {
       const lookAt = useGameStore.getState().cameraLookAt;
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
     }
@@ -126,7 +126,7 @@ export function Player({ position = [0, 2, 0] }: { position?: [number, number, n
       groupRef.current.rotation.y = yaw.current;
     }
 
-    if (mode === 'walking' || mode === 'exiting_car') {
+    if (mode === 'walking') {
       // Chase camera
       const playerPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const playerQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), yaw.current);

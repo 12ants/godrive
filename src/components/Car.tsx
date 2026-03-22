@@ -63,11 +63,19 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   const pos = useRef([0, 0, 0]);
   const rotation = useRef([0, 0, 0, 1] as [number, number, number, number]);
   const currentLookAt = useRef(new Vector3(0, 0, 0));
+  const exitTransitionElapsed = useRef(0);
+  const exitTransitionDuration = 0.5;
 
   useEffect(() => {
     if (mode === 'driving' || mode === 'entering_car') {
       const lookAt = useGameStore.getState().cameraLookAt;
       currentLookAt.current.set(lookAt[0], lookAt[1], lookAt[2]);
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode === 'exiting_car') {
+      exitTransitionElapsed.current = 0;
     }
   }, [mode]);
 
@@ -132,6 +140,34 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       const idealLookAt = carPosition.clone().add(lookAtOffset);
       
       currentLookAt.current.lerp(idealLookAt, 5 * delta);
+      camera.lookAt(currentLookAt.current);
+      useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
+    } else if (mode === 'exiting_car') {
+      exitTransitionElapsed.current = Math.min(exitTransitionElapsed.current + delta, exitTransitionDuration);
+      const t = exitTransitionElapsed.current / exitTransitionDuration;
+      const smoothT = t * t * (3 - 2 * t);
+
+      const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
+      const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
+      const carCameraOffset = new Vector3(0, 3, -10).applyQuaternion(carQuaternion);
+      const carCameraPosition = carPosition.clone().add(carCameraOffset);
+      carCameraPosition.y = Math.max(carCameraPosition.y, 1);
+      const carLookAtOffset = new Vector3(0, 1, 2).applyQuaternion(carQuaternion);
+      const carLookAt = carPosition.clone().add(carLookAtOffset);
+
+      const { playerPosition, playerYaw } = useGameStore.getState();
+      const playerPosVec = new Vector3(playerPosition[0], playerPosition[1], playerPosition[2]);
+      const playerQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), playerYaw);
+      const playerCameraOffset = new Vector3(0, 1.5, 4).applyQuaternion(playerQuaternion);
+      const playerCameraPosition = playerPosVec.clone().add(playerCameraOffset);
+      playerCameraPosition.y = Math.max(playerCameraPosition.y, 1);
+      const playerLookAtOffset = new Vector3(0, 0.5, -2).applyQuaternion(playerQuaternion);
+      const playerLookAt = playerPosVec.clone().add(playerLookAtOffset);
+
+      const blendedCameraPosition = carCameraPosition.lerp(playerCameraPosition, smoothT);
+      const blendedLookAt = carLookAt.lerp(playerLookAt, smoothT);
+      camera.position.copy(blendedCameraPosition);
+      currentLookAt.current.lerp(blendedLookAt, 5 * delta);
       camera.lookAt(currentLookAt.current);
       useGameStore.setState({ cameraLookAt: [currentLookAt.current.x, currentLookAt.current.y, currentLookAt.current.z] });
     }
