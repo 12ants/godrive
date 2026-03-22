@@ -311,7 +311,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
         </mesh>
       </mesh>
       <group ref={wheel1 as any}>
-        <mesh rotation={[0, 0, Math.PI / 2]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
           <meshStandardMaterial color="#333" />
           {wireframe && (
@@ -323,7 +323,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
         </mesh>
       </group>
       <group ref={wheel2 as any}>
-        <mesh rotation={[0, 0, Math.PI / 2]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
           <meshStandardMaterial color="#333" />
           {wireframe && (
@@ -335,7 +335,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
         </mesh>
       </group>
       <group ref={wheel3 as any}>
-        <mesh rotation={[0, 0, Math.PI / 2]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
           <meshStandardMaterial color="#333" />
           {wireframe && (
@@ -347,7 +347,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
         </mesh>
       </group>
       <group ref={wheel4 as any}>
-        <mesh rotation={[0, 0, Math.PI / 2]}>
+        <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.5, 0.5, 0.5, 16]} />
           <meshStandardMaterial color="#333" />
           {wireframe && (
