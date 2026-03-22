@@ -39,10 +39,10 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
   };
 
   const wheelInfos = [
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: true },
-    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: false },
-    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, -1.5] as [number, number, number], isFrontWheel: true },
+    { ...wheelInfo, chassisConnectionPointLocal: [-1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
+    { ...wheelInfo, chassisConnectionPointLocal: [1.2, -0.5, 1.5] as [number, number, number], isFrontWheel: false },
   ];
 
   const [wheel1] = useCylinder(() => ({ mass: 1, type: 'Kinematic', material: 'wheel', collisionFilterGroup: 0, args: [0.5, 0.5, 0.5, 16] }));
@@ -127,7 +127,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
 
-      const cameraOffset = new Vector3(0, 3, -10);
+      const cameraOffset = new Vector3(0, 3, 10);
       cameraOffset.applyQuaternion(carQuaternion);
       const idealCameraPosition = carPosition.clone().add(cameraOffset);
       idealCameraPosition.y = Math.max(idealCameraPosition.y, 1); // Prevent camera from going underground
@@ -135,7 +135,7 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
       camera.position.lerp(idealCameraPosition, 5 * delta);
       
       // Look slightly ahead of the car's center
-      const lookAtOffset = new Vector3(0, 1, 2);
+      const lookAtOffset = new Vector3(0, 1, -2);
       lookAtOffset.applyQuaternion(carQuaternion);
       const idealLookAt = carPosition.clone().add(lookAtOffset);
       
@@ -149,10 +149,10 @@ export function Car({ position = [5, 2, 0] }: { position?: [number, number, numb
 
       const carPosition = new Vector3(pos.current[0], pos.current[1], pos.current[2]);
       const carQuaternion = new Quaternion(rotation.current[0], rotation.current[1], rotation.current[2], rotation.current[3]);
-      const carCameraOffset = new Vector3(0, 3, -10).applyQuaternion(carQuaternion);
+      const carCameraOffset = new Vector3(0, 3, 10).applyQuaternion(carQuaternion);
       const carCameraPosition = carPosition.clone().add(carCameraOffset);
       carCameraPosition.y = Math.max(carCameraPosition.y, 1);
-      const carLookAtOffset = new Vector3(0, 1, 2).applyQuaternion(carQuaternion);
+      const carLookAtOffset = new Vector3(0, 1, -2).applyQuaternion(carQuaternion);
       const carLookAt = carPosition.clone().add(carLookAtOffset);
 
       const { playerPosition, playerYaw } = useGameStore.getState();
